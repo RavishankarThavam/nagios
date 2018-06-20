@@ -1,0 +1,24 @@
+nagios_user: nagios
+nagios_group: nagios
+apache_group: apache
+
+installer_archives:
+  - 'nagios-4.3.1.tar.gz'
+
+plugin_archives:
+  - 'release-2.1.4.tar.gz'
+
+pnp_archives:
+  - 'pnp4nagios-0.6.25.tar.gz'
+
+patches:
+  - 'nagios.patch'
+  - 'commands.patch'
+  - 'templates.patch'
+
+live_archives:
+  - 'mk-livestatus-1.2.6.tar.gz'
+
+installation_folder: '/tmp'
+
+libexec_folder: '/usr/local/nagios/libexec/'

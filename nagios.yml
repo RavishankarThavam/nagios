@@ -1,0 +1,7 @@
+---
+- name: Install Nagios in Linux
+  hosts: nagioshosts 
+  vars_files:
+    - infra-vars.yml
+  roles:
+    - role: linux-nagios

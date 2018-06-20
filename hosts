@@ -1,0 +1,3 @@
+[nagioshosts]
+nagios ansible_ssh_host=[Destination Server IP] ansible_ssh_port=22
+
