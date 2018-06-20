@@ -1,0 +1,161 @@
+# ==> Configure Linux
+- name: Install required libraries
+  yum: name={{ item }} state=present
+  with_items: '{{packages_list}}'
+- name: Disable SELinux
+  selinux: state=disabled
+- name: Disable Firewall Deamon (firewalld)
+  service: name=firewalld state=stopped enabled=no
+    
+# ==> Create users and groups
+- name: Create groups
+  group: name={{ nagios_group }} state=present
+- name: Create user
+  user: name={{ nagios_user }} groups={{ nagios_group }},{{ apache_group }} append=yes 
+
+# ==> Copy installer files
+- name: Copy installer files
+  copy: src={{ item }} dest='{{ installation_folder }}/' mode=755
+  with_items: '{{ installer_archives }}'
+
+- name: extract installer files
+  command: "tar -zxvf /tmp/{{ item }} -C /tmp/"
+  with_items: '{{ installer_archives }}'
+
+# ==> Compile Nagios
+- name: Compile Nagios
+  command: "{{ item }} chdir=/tmp/nagios-4.3.1/"
+  with_items:
+    - ./configure --with-command-group=nagios
+    - make all
+    - make install
+    - make install-init
+    - make install-config
+    - make install-commandmode
+    - make install-webconf
+
+# ==> Copy Nagios Event Handlers
+- name: Copy event handlers files
+  command: 'cp -R /tmp/nagios-4.3.1/contrib/eventhandlers {{ libexec_folder }}'
+
+- name: Change libexec folder ownership
+  file: state=directory path={{ libexec_folder }} owner={{ nagios_user }} group={{ nagios_group }}
+
+
+# ==> Copy Plugin installer files
+- name: Copy installer files
+  copy: src={{ item }} dest='{{ installation_folder }}/' mode=755
+  with_items: '{{ plugin_archives }}'
+
+- name: extract plugin installer files
+  command: "tar -zxvf /tmp/{{ item }} -C /tmp/"
+  with_items: '{{ plugin_archives }}'
+
+# ==> Compile Nagios Plugin
+- name: Compile Nagios Plugin
+  command: "{{ item }} chdir=/tmp/nagios-plugins-release-2.1.4/"
+  with_items:
+    - ./tools/setup
+    - ./configure --with-nagios-user=nagios --with-nagios-group=nagios
+    - make
+    - make install
+
+#- name: "Start NRPE service"
+#  service: name=nrpe state=started enabled=yes
+
+
+# ==> Copy PNP4Nagios installer files
+- name: Copy installer files
+  copy: src={{ item }} dest='{{ installation_folder }}/' mode=755
+  with_items: '{{ pnp_archives }}'
+
+- name: Copy Patch Files
+  copy: src={{ item }} dest='{{ installation_folder }}/' mode=755
+  with_items: '{{ patches }}'
+
+- name: extract plugin installer files
+  command: "tar -zxvf /tmp/{{ item }} -C /tmp/"
+  with_items: '{{ pnp_archives }}'
+
+# ==> Compile PNP
+- name: Compile PNP Plugin
+  command: "{{ item }} chdir=/tmp/pnp4nagios-0.6.25/"
+  with_items:
+    - ./configure
+    - make all
+    - make fullinstall
+
+- name: Move Install.php
+  command: mv /usr/local/pnp4nagios/share/install.php /usr/local/pnp4nagios/share/install.php.ORI
+
+- name: Patch nagios.cfg
+  command: 'patch -u /usr/local/nagios/etc/nagios.cfg /tmp/nagios.patch'
+
+- name: Patch commands.cfg
+  command: 'patch -u /usr/local/nagios/etc/objects/commands.cfg /tmp/commands.patch'
+
+- name: Patch Templates.cfg
+  command: 'patch -u /usr/local/nagios/etc/objects/templates.cfg /tmp/templates.patch'
+
+- name: copy ssi header
+  command: 'cp /tmp/pnp4nagios-0.6.25/contrib/ssi/status-header.ssi /usr/local/nagios/share/ssi/'
+
+
+
+
+# ==> Copy Livestatus installer files
+- name: Copy installer files
+  copy: src={{ item }} dest='{{ installation_folder }}/' mode=755
+  with_items: '{{ live_archives }}'
+
+- name: extract plugin installer files
+  command: "tar -zxvf /tmp/{{ item }} -C /tmp/"
+  with_items: '{{ live_archives }}'
+
+# ==> Compile Livestatus
+- name: Compile Livestatus Plugin
+  command: "{{ item }} chdir=/tmp/mk-livestatus-1.2.6/"
+  with_items:
+    - ./configure --with-nagios4
+    - make
+    - make install
+
+- name: Update nagios.cfg
+  lineinfile: dest=/usr/local/nagios/etc/nagios.cfg line="broker_module=/usr/local/lib/mk-livestatus/livestatus.o /usr/local/nagios/var/rw/live"
+
+
+# ===> Change apache user & groups
+#- name: change apache user
+#  lineinfile: dest=/etc/httpd/conf/httpd.conf regexp=^User line="User nagios"
+
+#- name: change apache group
+#  lineinfile: dest=/etc/httpd/conf/httpd.conf regexp=^Group line="Group nagios"
+
+
+- name: enable Nagios script to run at startup
+  command: 'chkconfig --add nagios'
+  sudo_user: root
+  
+- name: "Start and Enable Http service"
+  service: name=httpd state=started enabled=yes
+  
+- name: "Start and Enable Nagios service"
+  service: name=nagios state=started enabled=yes
+
+- name: "Start and Enable npcd service"
+  service: name=npcd state=started enabled=yes
+
+#- name: "Restart npcd"
+#  service: name=npcd state=reloaded
+
+- name: "Start and Enable Nagios service"
+  service: name=nagios state=reloaded 
+
+#- name: "Start NRPE service"
+#  service: name=nrpe state=started enabled=yes
+
+#- name: "Restart NRPE"
+#  service : name=nrpe state=reloaded  
+# htpassword Enablement
+- name: "Create httpd users"
+  command: 'htpasswd -b -c /usr/local/nagios/etc/htpasswd.users [username] [password]'
