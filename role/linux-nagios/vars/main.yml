@@ -1,0 +1,28 @@
+packages_list:
+  - epel-release
+  - wget
+  - httpd
+  - php
+  - gcc
+  - glibc
+  - glibc-common
+  - gd
+  - gd-devel
+  - make
+  - net-snmp
+  - unzip
+  - automake 
+  - perl 
+  - libpng-devel 
+  - libjpeg-turbo-devel 
+  - rrdtool 
+  - perl-Time-HiRes 
+  - rrdtool-perl 
+  - php-gd 
+  - gcc-c++
+
+plugins_list:
+  - nagios-plugins-all
+  - nagios-plugins-nrpe
+  - nrpe
+
