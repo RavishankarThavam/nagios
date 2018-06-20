@@ -1,0 +1,17 @@
+--- commands.cfg	2017-06-09 22:45:46.375158379 +0530
++++ commands.cfg1	2017-06-09 22:46:31.381156413 +0530
+@@ -237,3 +237,14 @@
+ 	}
+ 
+ 
++#
++# Bulk with NPCD mode
++#
++define command {
++command_name process-service-perfdata-file
++command_line /bin/mv /usr/local/pnp4nagios/var/service-perfdata /usr/local/pnp4nagios/var/spool/service-perfdata.$TIMET$
++}
++define command {
++command_name process-host-perfdata-file
++command_line /bin/mv /usr/local/pnp4nagios/var/host-perfdata /usr/local/pnp4nagios/var/spool/host-perfdata.$TIMET$
++}

@@ -1,0 +1,17 @@
+--- templates.cfg	2017-06-09 22:48:04.685152336 +0530
++++ templates.cfg1	2017-06-09 22:50:15.885146604 +0530
+@@ -185,3 +185,14 @@
+         register                        0       		; DONT REGISTER THIS DEFINITION - ITS NOT A REAL SERVICE, JUST A TEMPLATE!
+ 	}
+ 
++
++define host {
++name host-pnp
++action_url /pnp4nagios/index.php/graph?host=$HOSTNAME$&srv=_HOST_' class='tips' rel='/pnp4nagios/index.php/popup?host=$HOSTNAME$&srv=_HOST_
++register 0
++}
++define service {
++name srv-pnp
++action_url /pnp4nagios/index.php/graph?host=$HOSTNAME$&srv=$SERVICEDESC$' class='tips' rel='/pnp4nagios/index.php/popup?host=$HOSTNAME$&srv=$SERVICEDESC$
++register 0
++}
